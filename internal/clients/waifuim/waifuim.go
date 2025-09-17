@@ -13,6 +13,8 @@ import (
 
 const clientName = "waifu.im"
 
+var _ booru.BooruClient = (*Client)(nil)
+
 // Client is a client for the waifu.im API.
 type Client struct {
 	baseURL    string

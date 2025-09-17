@@ -11,6 +11,8 @@ import (
 
 const clientName = "waifu.pics"
 
+var _ booru.BooruClient = (*Client)(nil)
+
 // Client is a client for the waifu.pics API.
 type Client struct {
 	baseURL    string
@@ -45,7 +47,7 @@ func (c *Client) Search(ctx context.Context, params booru.SearchParams) ([]booru
 	reqURL := fmt.Sprintf("%s/many/%s/%s", c.baseURL, endpointType, category)
 
 	// The API expects an empty JSON body for the "many" endpoint
-	body, err := json.Marshal(map[string][]string{"exclude": {}})
+	body, err := json.Marshal(request{Exclude: []string{}})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
@@ -66,9 +68,7 @@ func (c *Client) Search(ctx context.Context, params booru.SearchParams) ([]booru
 		return nil, fmt.Errorf("received non-200 status code: %d", resp.StatusCode)
 	}
 
-	var apiResponse struct {
-		Files []string `json:"files"`
-	}
+	var apiResponse response
 	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}

@@ -13,6 +13,8 @@ import (
 
 const clientName = "pic.re"
 
+var _ booru.BooruClient = (*Client)(nil)
+
 // Client is a client for the pic.re API.
 type Client struct {
 	baseURL    string

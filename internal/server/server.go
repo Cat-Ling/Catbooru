@@ -3,6 +3,7 @@ package server
 import (
 	"booru-server/pkg/booru"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,8 +56,9 @@ func (s *Server) Start(addr string) error {
 // @Router /api/search [get]
 func (s *Server) handleSearch() http.HandlerFunc {
 	type result struct {
-		images []booru.Image
-		err    error
+		clientName string
+		images     []booru.Image
+		err        error
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +72,7 @@ func (s *Server) handleSearch() http.HandlerFunc {
 			go func(c booru.BooruClient) {
 				defer wg.Done()
 				images, err := c.Search(r.Context(), params)
-				resultsChan <- result{images: images, err: err}
+				resultsChan <- result{clientName: c.Name(), images: images, err: err}
 			}(client)
 		}
 
@@ -80,7 +82,7 @@ func (s *Server) handleSearch() http.HandlerFunc {
 		var allImages []booru.Image
 		for res := range resultsChan {
 			if res.err != nil {
-				log.Printf("Error from client: %v", res.err)
+				log.Printf("Error from client '%s': %v", res.clientName, res.err)
 			} else {
 				allImages = append(allImages, res.images...)
 			}

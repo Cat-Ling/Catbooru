@@ -2,11 +2,6 @@ package nekosapi
 
 import "time"
 
-// Response is the top-level structure of the nekosapi.com API response.
-type Response struct {
-	Data []Image `json:"data"`
-}
-
 // Image is the structure of an image object from the nekosapi.com API.
 type Image struct {
 	ID        string    `json:"id"`

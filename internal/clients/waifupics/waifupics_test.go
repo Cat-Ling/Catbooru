@@ -41,3 +41,16 @@ func TestClient_Search(t *testing.T) {
 		t.Errorf("Expected image URL 'https://example.com/image1.jpg', got '%s'", images[0].URL)
 	}
 }
+
+func TestClient_Search_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	client := New(server.URL)
+	_, err := client.Search(context.Background(), booru.SearchParams{Tags: []string{"tag1"}})
+	if err == nil {
+		t.Fatal("Expected an error, but got none")
+	}
+}

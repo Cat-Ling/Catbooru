@@ -12,6 +12,8 @@ import (
 
 const clientName = "nekosapi.com"
 
+var _ booru.BooruClient = (*Client)(nil)
+
 // Client is a client for the nekosapi.com API.
 type Client struct {
 	baseURL    string
@@ -66,12 +68,12 @@ func (c *Client) Search(ctx context.Context, params booru.SearchParams) ([]booru
 		return nil, fmt.Errorf("received non-200 status code: %d", resp.StatusCode)
 	}
 
-	var apiResponse Response
+	var apiResponse []Image
 	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return toBooruImages(apiResponse.Data), nil
+	return toBooruImages(apiResponse), nil
 }
 
 func toBooruImages(images []Image) []booru.Image {

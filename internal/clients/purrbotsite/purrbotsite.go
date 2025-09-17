@@ -10,6 +10,8 @@ import (
 
 const clientName = "purrbot.site"
 
+var _ booru.BooruClient = (*Client)(nil)
+
 // Client is a client for the purrbot.site API.
 type Client struct {
 	baseURL    string
@@ -69,20 +71,17 @@ func (c *Client) Search(ctx context.Context, params booru.SearchParams) ([]booru
 		return nil, fmt.Errorf("API returned an error")
 	}
 
-	// The API returns a single image, so we wrap it in a slice
-	return toBooruImages([]Response{apiResponse}, category, endpointType == "nsfw"), nil
+	return toBooruImage(apiResponse, category, endpointType == "nsfw"), nil
 }
 
-func toBooruImages(responses []Response, category string, isNSFW bool) []booru.Image {
-	booruImages := make([]booru.Image, len(responses))
-	for i, res := range responses {
-		booruImages[i] = booru.Image{
+func toBooruImage(res Response, category string, isNSFW bool) []booru.Image {
+	return []booru.Image{
+		{
 			ID:       res.Link,
 			URL:      res.Link,
 			Tags:     []string{category},
 			NSFW:     isNSFW,
 			Provider: clientName,
-		}
+		},
 	}
-	return booruImages
 }
