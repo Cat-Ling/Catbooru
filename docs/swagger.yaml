@@ -1,0 +1,78 @@
+basePath: /
+definitions:
+  booru.Image:
+    properties:
+      created_at:
+        type: string
+      height:
+        type: integer
+      id:
+        type: string
+      nsfw:
+        type: boolean
+      provider:
+        description: e.g., "waifu.im", "waifu.pics"
+        type: string
+      score:
+        type: integer
+      source:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      url:
+        type: string
+      width:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A Go server for a feature-rich booru browsing site.
+  title: Go Booru Server API
+  version: "1.0"
+paths:
+  /api/search:
+    get:
+      consumes:
+      - application/json
+      description: Searches for images across multiple booru sources.
+      parameters:
+      - description: A comma-separated list of tags to search for.
+        in: query
+        name: tags
+        type: string
+      - description: Whether to include NSFW content.
+        in: query
+        name: nsfw
+        type: boolean
+      - description: The maximum number of results to return from each provider.
+        in: query
+        name: limit
+        type: integer
+      - description: A minimum width for the images.
+        in: query
+        name: width
+        type: integer
+      - description: A minimum height for the images.
+        in: query
+        name: height
+        type: integer
+      - description: The order in which to sort the results.
+        in: query
+        name: orderBy
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/booru.Image'
+            type: array
+      summary: Search for images
+      tags:
+      - images
+swagger: "2.0"
