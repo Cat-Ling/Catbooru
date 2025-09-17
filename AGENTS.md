@@ -1,7 +1,7 @@
 make a Go server with a a fully featured booru browsing site.
 We will use these apis and implement all their features in our feature-rich booru site.
 
-You will find api documentation in the api_docs so use them.
+You will find api documentation in the api_docs directory so use them.
 
 
 If you get confused then just browse these sites.
