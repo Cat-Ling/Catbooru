@@ -1,0 +1,12 @@
+server:
+  host: "127.0.0.1"
+  port: 8080
+
+auth:
+  enabled: false
+  tokens: []
+
+ratelimit:
+  enabled: false
+  requests_per_second: 5
+  burst: 10
