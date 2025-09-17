@@ -1,4 +1,4 @@
-package picre
+package nekosmoe
 
 import (
 	"booru-server/pkg/booru"
@@ -7,26 +7,31 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
-func TestClient_Search(t *testing.T) {
+func TestModule_Search(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/image.json" {
-			t.Errorf("Expected to request '/image.json', got: %s", r.URL.Path)
+		if r.URL.Path != "/images/search" {
+			t.Errorf("Expected to request '/images/search', got: %s", r.URL.Path)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		response := Image{
-			ID:      123,
-			FileURL: "https://example.com/image.jpg",
-			Tags:    []string{"tag1"},
+		response := Response{
+			Images: []Image{
+				{
+					ID:        "test-id",
+					Tags:      []string{"tag1"},
+					CreatedAt: time.Now(),
+				},
+			},
 		}
 		json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
-	client := New(server.URL)
+	module := New(WithBaseURL(server.URL))
 	params := booru.SearchParams{Tags: []string{"tag1"}}
-	images, err := client.Search(context.Background(), params)
+	images, err := module.Search(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
@@ -36,19 +41,19 @@ func TestClient_Search(t *testing.T) {
 		t.Fatalf("Expected 1 image, got %d", len(images))
 	}
 
-	if images[0].ID != "123" {
-		t.Errorf("Expected image ID '123', got '%s'", images[0].ID)
+	if images[0].ID != "test-id" {
+		t.Errorf("Expected image ID 'test-id', got '%s'", images[0].ID)
 	}
 }
 
-func TestClient_Search_Error(t *testing.T) {
+func TestModule_Search_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
 
-	client := New(server.URL)
-	_, err := client.Search(context.Background(), booru.SearchParams{})
+	module := New(WithBaseURL(server.URL))
+	_, err := module.Search(context.Background(), booru.SearchParams{})
 	if err == nil {
 		t.Fatal("Expected an error, but got none")
 	}

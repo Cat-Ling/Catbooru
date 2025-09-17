@@ -2,8 +2,8 @@ package booru
 
 import "context"
 
-// BooruClient is the interface that all booru API clients must implement.
-type BooruClient interface {
+// BooruModule is the interface that all booru API modules must implement.
+type BooruModule interface {
 	// Name returns the name of the booru provider (e.g., "waifu.im").
 	Name() string
 	// Search queries the booru API with the given parameters.

@@ -1,0 +1,17 @@
+{
+  "name": "booru-server",
+  "version": "1.0.0",
+  "description": "A Go server for a feature-rich booru browsing site.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "semantic-release": "semantic-release"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.0.4",
+    "@semantic-release/npm": "^10.0.4",
+    "semantic-release": "^21.0.7"
+  }
+}

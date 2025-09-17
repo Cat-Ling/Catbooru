@@ -6,14 +6,16 @@ GOTEST=$(GOCMD) test
 GOTOOL=$(GOCMD) tool
 BINARY_NAME=booru-server
 BINARY_UNIX=$(BINARY_NAME)_unix
+VERSION ?= $(shell git describe --tags --always --dirty)
+GO_LDFLAGS=-ldflags="-X main.version=$(VERSION)"
 
 all: build
 
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/server
+	$(GOBUILD) $(GO_LDFLAGS) -o $(BINARY_NAME) -v ./cmd/server
 
 run:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/server
+	$(GOBUILD) $(GO_LDFLAGS) -o $(BINARY_NAME) -v ./cmd/server
 	./$(BINARY_NAME)
 
 test:

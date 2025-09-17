@@ -8,31 +8,47 @@ import (
 	"net/http"
 )
 
-const clientName = "purrbot.site"
+const moduleName = "purrbot.site"
 
-var _ booru.BooruClient = (*Client)(nil)
+var _ booru.BooruModule = (*Module)(nil)
 
-// Client is a client for the purrbot.site API.
-type Client struct {
+// Module is a module for the purrbot.site API.
+type Module struct {
 	baseURL    string
 	httpClient *http.Client
 }
 
-// New creates a new purrbot.site client.
-func New(baseURL string) *Client {
-	return &Client{
-		baseURL:    baseURL,
-		httpClient: &http.Client{},
+// Option is a functional option for configuring the purrbot.site module.
+type Option func(*Module)
+
+// WithBaseURL sets the base URL for the purrbot.site module.
+func WithBaseURL(baseURL string) Option {
+	return func(m *Module) {
+		m.baseURL = baseURL
 	}
 }
 
-// Name returns the name of the client.
-func (c *Client) Name() string {
-	return clientName
+// New creates a new purrbot.site module.
+func New(opts ...Option) *Module {
+	m := &Module{
+		baseURL:    "https://api.purrbot.site/v2",
+		httpClient: &http.Client{},
+	}
+
+	for _, opt := range opts {
+		opt(m)
+	}
+
+	return m
+}
+
+// Name returns the name of the module.
+func (c *Module) Name() string {
+	return moduleName
 }
 
 // Search queries the purrbot.site API.
-func (c *Client) Search(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
+func (c *Module) Search(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
 	if len(params.Tags) == 0 {
 		return nil, fmt.Errorf("at least one tag is required for purrbot.site search")
 	}
@@ -81,7 +97,7 @@ func toBooruImage(res Response, category string, isNSFW bool) []booru.Image {
 			URL:      res.Link,
 			Tags:     []string{category},
 			NSFW:     isNSFW,
-			Provider: clientName,
+			Provider: moduleName,
 		},
 	}
 }

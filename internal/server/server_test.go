@@ -9,35 +9,35 @@ import (
 	"testing"
 )
 
-// MockClient is a mock implementation of the booru.BooruClient interface.
-type MockClient struct {
+// MockModule is a mock implementation of the booru.BooruModule interface.
+type MockModule struct {
 	NameFunc   func() string
 	SearchFunc func(ctx context.Context, params booru.SearchParams) ([]booru.Image, error)
 }
 
-func (m *MockClient) Name() string {
+func (m *MockModule) Name() string {
 	return m.NameFunc()
 }
 
-func (m *MockClient) Search(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
+func (m *MockModule) Search(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
 	return m.SearchFunc(ctx, params)
 }
 
 func TestServer_HandleSearch(t *testing.T) {
-	client1 := &MockClient{
+	module1 := &MockModule{
 		NameFunc: func() string { return "mock1" },
 		SearchFunc: func(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
 			return []booru.Image{{ID: "1", Provider: "mock1"}}, nil
 		},
 	}
-	client2 := &MockClient{
+	module2 := &MockModule{
 		NameFunc: func() string { return "mock2" },
 		SearchFunc: func(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
 			return []booru.Image{{ID: "2", Provider: "mock2"}}, nil
 		},
 	}
 
-	server := New([]booru.BooruClient{client1, client2})
+	server := New([]booru.BooruModule{module1, module2}, "test-version")
 	ts := httptest.NewServer(server.router)
 	defer ts.Close()
 

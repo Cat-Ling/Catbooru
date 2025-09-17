@@ -10,31 +10,47 @@ import (
 	"strings"
 )
 
-const clientName = "nekosapi.com"
+const moduleName = "nekosapi.com"
 
-var _ booru.BooruClient = (*Client)(nil)
+var _ booru.BooruModule = (*Module)(nil)
 
-// Client is a client for the nekosapi.com API.
-type Client struct {
+// Module is a module for the nekosapi.com API.
+type Module struct {
 	baseURL    string
 	httpClient *http.Client
 }
 
-// New creates a new nekosapi.com client.
-func New(baseURL string) *Client {
-	return &Client{
-		baseURL:    baseURL,
-		httpClient: &http.Client{},
+// Option is a functional option for configuring the nekosapi.com module.
+type Option func(*Module)
+
+// WithBaseURL sets the base URL for the nekosapi.com module.
+func WithBaseURL(baseURL string) Option {
+	return func(m *Module) {
+		m.baseURL = baseURL
 	}
 }
 
-// Name returns the name of the client.
-func (c *Client) Name() string {
-	return clientName
+// New creates a new nekosapi.com module.
+func New(opts ...Option) *Module {
+	m := &Module{
+		baseURL:    "https://api.nekosapi.com/v4",
+		httpClient: &http.Client{},
+	}
+
+	for _, opt := range opts {
+		opt(m)
+	}
+
+	return m
+}
+
+// Name returns the name of the module.
+func (c *Module) Name() string {
+	return moduleName
 }
 
 // Search queries the nekosapi.com API.
-func (c *Client) Search(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
+func (c *Module) Search(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
 	reqURL, err := url.Parse(c.baseURL + "/images/random")
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -91,7 +107,7 @@ func toBooruImages(images []Image) []booru.Image {
 			Tags:      tags,
 			NSFW:      img.Rating == "explicit" || img.Rating == "borderline",
 			CreatedAt: img.CreatedAt,
-			Provider:  clientName,
+			Provider:  moduleName,
 		}
 	}
 	return booruImages

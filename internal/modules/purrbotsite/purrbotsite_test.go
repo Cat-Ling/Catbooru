@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestClient_Search(t *testing.T) {
+func TestModule_Search(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		expectedPath := "/img/sfw/pat/img"
 		if r.URL.Path != expectedPath {
@@ -23,10 +23,10 @@ func TestClient_Search(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := New(server.URL)
+	module := New(WithBaseURL(server.URL))
 	isNsfw := false
 	params := booru.SearchParams{Tags: []string{"pat"}, NSFW: &isNsfw}
-	images, err := client.Search(context.Background(), params)
+	images, err := module.Search(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
@@ -41,14 +41,14 @@ func TestClient_Search(t *testing.T) {
 	}
 }
 
-func TestClient_Search_Error(t *testing.T) {
+func TestModule_Search_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
 
-	client := New(server.URL)
-	_, err := client.Search(context.Background(), booru.SearchParams{Tags: []string{"tag1"}})
+	module := New(WithBaseURL(server.URL))
+	_, err := module.Search(context.Background(), booru.SearchParams{Tags: []string{"tag1"}})
 	if err == nil {
 		t.Fatal("Expected an error, but got none")
 	}

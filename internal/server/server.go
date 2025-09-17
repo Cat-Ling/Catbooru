@@ -17,14 +17,16 @@ import (
 // Server is the main application server.
 type Server struct {
 	router  *chi.Mux
-	clients []booru.BooruClient
+	modules []booru.BooruModule
+	version string
 }
 
-// New creates a new server with the given clients.
-func New(clients []booru.BooruClient) *Server {
+// New creates a new server with the given modules.
+func New(modules []booru.BooruModule, version string) *Server {
 	s := &Server{
 		router:  chi.NewRouter(),
-		clients: clients,
+		modules: modules,
+		version: version,
 	}
 
 	s.router.Use(middleware.Logger)
@@ -32,8 +34,17 @@ func New(clients []booru.BooruClient) *Server {
 	s.router.Use(middleware.Timeout(60 * time.Second))
 
 	s.router.Get("/api/search", s.handleSearch())
+	s.router.Get("/version", s.handleVersion())
 
 	return s
+}
+
+// handleVersion returns the server's version.
+func (s *Server) handleVersion() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte(s.version))
+	}
 }
 
 // Start starts the HTTP server on the given address.
@@ -56,7 +67,7 @@ func (s *Server) Start(addr string) error {
 // @Router /api/search [get]
 func (s *Server) handleSearch() http.HandlerFunc {
 	type result struct {
-		clientName string
+		moduleName string
 		images     []booru.Image
 		err        error
 	}
@@ -65,15 +76,15 @@ func (s *Server) handleSearch() http.HandlerFunc {
 		params := parseSearchParams(r)
 
 		var wg sync.WaitGroup
-		resultsChan := make(chan result, len(s.clients))
+		resultsChan := make(chan result, len(s.modules))
 
-		for _, client := range s.clients {
+		for _, module := range s.modules {
 			wg.Add(1)
-			go func(c booru.BooruClient) {
+			go func(m booru.BooruModule) {
 				defer wg.Done()
-				images, err := c.Search(r.Context(), params)
-				resultsChan <- result{clientName: c.Name(), images: images, err: err}
-			}(client)
+				images, err := m.Search(r.Context(), params)
+				resultsChan <- result{moduleName: m.Name(), images: images, err: err}
+			}(module)
 		}
 
 		wg.Wait()
@@ -82,7 +93,7 @@ func (s *Server) handleSearch() http.HandlerFunc {
 		var allImages []booru.Image
 		for res := range resultsChan {
 			if res.err != nil {
-				log.Printf("Error from client '%s': %v", res.clientName, res.err)
+				log.Printf("Error from module '%s': %v", res.moduleName, res.err)
 			} else {
 				allImages = append(allImages, res.images...)
 			}
