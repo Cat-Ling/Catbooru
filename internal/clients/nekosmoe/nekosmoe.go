@@ -7,16 +7,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
-const (
-	clientName = "nekos.moe"
-	imageHost  = "https://nekos.moe/image"
-)
+const clientName = "nekos.moe"
+
+var _ booru.BooruClient = (*Client)(nil)
 
 // Client is a client for the nekos.moe API.
 type Client struct {
 	baseURL    string
+	imageURL   string
 	httpClient *http.Client
 }
 
@@ -24,6 +25,7 @@ type Client struct {
 func New(baseURL string) *Client {
 	return &Client{
 		baseURL:    baseURL,
+		imageURL:   strings.Replace(baseURL, "/api/v1", "/image", 1),
 		httpClient: &http.Client{},
 	}
 }
@@ -35,18 +37,16 @@ func (c *Client) Name() string {
 
 // Search queries the nekos.moe API.
 func (c *Client) Search(ctx context.Context, params booru.SearchParams) ([]booru.Image, error) {
-	searchBody := map[string]interface{}{}
-	if len(params.Tags) > 0 {
-		searchBody["tags"] = params.Tags
+	searchReq := SearchRequest{
+		Tags:  params.Tags,
+		NSFW:  params.NSFW,
+		Limit: params.Limit,
 	}
-	if params.NSFW != nil {
-		searchBody["nsfw"] = *params.NSFW
-	}
-	if params.Limit > 0 {
-		searchBody["limit"] = params.Limit
+	if params.OrderBy == "likes" {
+		searchReq.Sort = "likes"
 	}
 
-	body, err := json.Marshal(searchBody)
+	body, err := json.Marshal(searchReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
@@ -73,16 +73,16 @@ func (c *Client) Search(ctx context.Context, params booru.SearchParams) ([]booru
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return toBooruImages(apiResponse.Images), nil
+	return c.toBooruImages(apiResponse.Images), nil
 }
 
-func toBooruImages(images []Image) []booru.Image {
+func (c *Client) toBooruImages(images []Image) []booru.Image {
 	booruImages := make([]booru.Image, len(images))
 	for i, img := range images {
 		booruImages[i] = booru.Image{
 			ID:        img.ID,
-			URL:       fmt.Sprintf("%s/%s.jpg", imageHost, img.ID), // .jpg is a guess, might need adjustment
-			Source:    fmt.Sprintf("https://nekos.moe/post/%s", img.ID),
+			URL:       fmt.Sprintf("%s/%s.png", c.imageURL, img.ID),
+			Source:    fmt.Sprintf("%s/post/%s", strings.Replace(c.baseURL, "/api/v1", "", 1), img.ID),
 			Tags:      img.Tags,
 			Score:     img.Likes,
 			NSFW:      img.Nsfw,

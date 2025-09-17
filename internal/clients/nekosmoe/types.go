@@ -16,3 +16,11 @@ type Image struct {
 	Nsfw      bool      `json:"nsfw"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+// SearchRequest is the request body for the nekos.moe image search API.
+type SearchRequest struct {
+	Tags  []string `json:"tags,omitempty"`
+	NSFW  *bool    `json:"nsfw,omitempty"`
+	Limit int      `json:"limit,omitempty"`
+	Sort  string   `json:"sort,omitempty"`
+}

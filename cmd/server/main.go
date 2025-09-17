@@ -26,25 +26,29 @@ func main() {
 	}
 
 	var clients []booru.BooruClient
-	if clientCfg, ok := cfg.Clients["waifu_im"]; ok && clientCfg.Enabled {
-		clients = append(clients, waifuim.New(clientCfg.BaseURL))
-	}
-	if clientCfg, ok := cfg.Clients["waifu_pics"]; ok && clientCfg.Enabled {
-		clients = append(clients, waifupics.New(clientCfg.BaseURL))
-	}
-	if clientCfg, ok := cfg.Clients["nekos_moe"]; ok && clientCfg.Enabled {
-		clients = append(clients, nekosmoe.New(clientCfg.BaseURL))
-	}
-	if clientCfg, ok := cfg.Clients["nekos_api"]; ok && clientCfg.Enabled {
-		// The docs say v4, but the config has v2. We'll use v4.
-		clients = append(clients, nekosapi.New("https://api.nekosapi.com/v4"))
-	}
-	if clientCfg, ok := cfg.Clients["pic_re"]; ok && clientCfg.Enabled {
-		clients = append(clients, picre.New(clientCfg.BaseURL))
-	}
-	if clientCfg, ok := cfg.Clients["purrbot_site"]; ok && clientCfg.Enabled {
-		// The docs say v2, but the config has no version. We'll add it.
-		clients = append(clients, purrbotsite.New(clientCfg.BaseURL+"/v2"))
+	for name, clientCfg := range cfg.Clients {
+		if clientCfg.Enabled {
+			var client booru.BooruClient
+			switch name {
+			case "waifu_im":
+				client = waifuim.New(clientCfg.BaseURL)
+			case "waifu_pics":
+				client = waifupics.New(clientCfg.BaseURL)
+			case "nekos_moe":
+				client = nekosmoe.New(clientCfg.BaseURL)
+			case "nekos_api":
+				client = nekosapi.New(clientCfg.BaseURL)
+			case "pic_re":
+				client = picre.New(clientCfg.BaseURL)
+			case "purrbot_site":
+				client = purrbotsite.New(clientCfg.BaseURL)
+			default:
+				log.Printf("Warning: Unknown client '%s'", name)
+			}
+			if client != nil {
+				clients = append(clients, client)
+			}
+		}
 	}
 
 	if len(clients) == 0 {

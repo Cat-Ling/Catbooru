@@ -15,13 +15,11 @@ func TestClient_Search(t *testing.T) {
 			t.Errorf("Expected to request '/images/random', got: %s", r.URL.Path)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		response := Response{
-			Data: []Image{
-				{
-					ID:      "test-id",
-					FileURL: "https://example.com/image.jpg",
-					Tags:    []Tag{{Name: "tag1"}},
-				},
+		response := []Image{
+			{
+				ID:      "test-id",
+				FileURL: "https://example.com/image.jpg",
+				Tags:    []Tag{{Name: "tag1"}},
 			},
 		}
 		json.NewEncoder(w).Encode(response)
@@ -42,5 +40,18 @@ func TestClient_Search(t *testing.T) {
 
 	if images[0].ID != "test-id" {
 		t.Errorf("Expected image ID 'test-id', got '%s'", images[0].ID)
+	}
+}
+
+func TestClient_Search_Error(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	client := New(server.URL)
+	_, err := client.Search(context.Background(), booru.SearchParams{})
+	if err == nil {
+		t.Fatal("Expected an error, but got none")
 	}
 }

@@ -14,10 +14,10 @@ clients:
     base_url: "https://nekos.moe/api/v1"
   nekos_api:
     enabled: true
-    base_url: "https://api.nekosapi.com/v2" # This is v2 in the original file, but docs say v4. I'll use v4 in the client, but keep this as v2 to match the original config.
+    base_url: "https://api.nekosapi.com/v4"
   pic_re:
     enabled: true
     base_url: "https://pic.re"
   purrbot_site:
     enabled: true
-    base_url: "https://purrbot.site/api" # This is also different from the docs, but I'll stick to the config. The docs say /v2, but the config doesn't have it. I'll add it in the client.
+    base_url: "https://api.purrbot.site/v2"
