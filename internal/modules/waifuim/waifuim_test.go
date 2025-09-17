@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestClient_Search(t *testing.T) {
+func TestModule_Search(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/search" {
 			t.Errorf("Expected to request '/search', got: %s", r.URL.Path)
@@ -28,9 +28,9 @@ func TestClient_Search(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := New(server.URL)
+	module := New(WithBaseURL(server.URL))
 	params := booru.SearchParams{Tags: []string{"tag1"}}
-	images, err := client.Search(context.Background(), params)
+	images, err := module.Search(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
@@ -48,14 +48,14 @@ func TestClient_Search(t *testing.T) {
 	}
 }
 
-func TestClient_Search_Error(t *testing.T) {
+func TestModule_Search_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
 
-	client := New(server.URL)
-	_, err := client.Search(context.Background(), booru.SearchParams{})
+	module := New(WithBaseURL(server.URL))
+	_, err := module.Search(context.Background(), booru.SearchParams{})
 	if err == nil {
 		t.Fatal("Expected an error, but got none")
 	}

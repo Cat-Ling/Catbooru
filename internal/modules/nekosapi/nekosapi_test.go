@@ -1,4 +1,4 @@
-package nekosmoe
+package nekosapi
 
 import (
 	"booru-server/pkg/booru"
@@ -7,31 +7,28 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 )
 
-func TestClient_Search(t *testing.T) {
+func TestModule_Search(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/images/search" {
-			t.Errorf("Expected to request '/images/search', got: %s", r.URL.Path)
+		if r.URL.Path != "/images/random" {
+			t.Errorf("Expected to request '/images/random', got: %s", r.URL.Path)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		response := Response{
-			Images: []Image{
-				{
-					ID:        "test-id",
-					Tags:      []string{"tag1"},
-					CreatedAt: time.Now(),
-				},
+		response := []Image{
+			{
+				ID:      "test-id",
+				FileURL: "https://example.com/image.jpg",
+				Tags:    []Tag{{Name: "tag1"}},
 			},
 		}
 		json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
-	client := New(server.URL)
+	module := New(WithBaseURL(server.URL))
 	params := booru.SearchParams{Tags: []string{"tag1"}}
-	images, err := client.Search(context.Background(), params)
+	images, err := module.Search(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
@@ -46,14 +43,14 @@ func TestClient_Search(t *testing.T) {
 	}
 }
 
-func TestClient_Search_Error(t *testing.T) {
+func TestModule_Search_Error(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
 
-	client := New(server.URL)
-	_, err := client.Search(context.Background(), booru.SearchParams{})
+	module := New(WithBaseURL(server.URL))
+	_, err := module.Search(context.Background(), booru.SearchParams{})
 	if err == nil {
 		t.Fatal("Expected an error, but got none")
 	}

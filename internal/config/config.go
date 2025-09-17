@@ -8,20 +8,13 @@ import (
 
 // Config holds the application's configuration.
 type Config struct {
-	Server  ServerConfig          `mapstructure:"server"`
-	Clients map[string]ClientConfig `mapstructure:"clients"`
+	Server ServerConfig `mapstructure:"server"`
 }
 
 // ServerConfig holds the server's configuration.
 type ServerConfig struct {
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
-}
-
-// ClientConfig holds the configuration for a booru API client.
-type ClientConfig struct {
-	Enabled bool   `mapstructure:"enabled"`
-	BaseURL string `mapstructure:"base_url"`
 }
 
 // Load loads the configuration from a file and environment variables.
